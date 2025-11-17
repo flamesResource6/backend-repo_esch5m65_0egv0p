@@ -11,8 +11,8 @@ Model name is converted to lowercase for the collection name:
 - BlogPost -> "blogs" collection
 """
 
-from pydantic import BaseModel, Field
-from typing import Optional
+from pydantic import BaseModel, Field, EmailStr
+from typing import Optional, List
 
 # Example schemas (replace with your own):
 
@@ -22,7 +22,7 @@ class User(BaseModel):
     Collection name: "user" (lowercase of class name)
     """
     name: str = Field(..., description="Full name")
-    email: str = Field(..., description="Email address")
+    email: EmailStr = Field(..., description="Email address")
     address: str = Field(..., description="Address")
     age: Optional[int] = Field(None, ge=0, le=120, description="Age in years")
     is_active: bool = Field(True, description="Whether user is active")
@@ -38,11 +38,27 @@ class Product(BaseModel):
     category: str = Field(..., description="Product category")
     in_stock: bool = Field(True, description="Whether product is in stock")
 
-# Add your own schemas here:
-# --------------------------------------------------
+# KFC App Schemas
 
-# Note: The Flames database viewer will automatically:
-# 1. Read these schemas from GET /schema endpoint
-# 2. Use them for document validation when creating/editing
-# 3. Handle all database operations (CRUD) directly
-# 4. You don't need to create any database endpoints!
+class OrderItem(BaseModel):
+    name: str = Field(..., description="Menu item name")
+    quantity: int = Field(1, ge=1, description="Quantity")
+    price: float = Field(..., ge=0, description="Unit price")
+
+class Order(BaseModel):
+    """Orders collection schema (collection: order)"""
+    customer_name: str = Field(..., min_length=2)
+    phone: str = Field(..., min_length=7, max_length=20)
+    email: Optional[EmailStr] = None
+    order_type: str = Field(..., description="pickup | delivery | dine-in")
+    address: Optional[str] = Field(None, description="Delivery address if delivery")
+    items: List[OrderItem] = Field(default_factory=list)
+    notes: Optional[str] = None
+    total: float = Field(..., ge=0)
+
+class ContactMessage(BaseModel):
+    """Contact messages (collection: contactmessage)"""
+    name: str = Field(...)
+    email: EmailStr = Field(...)
+    phone: Optional[str] = None
+    message: str = Field(..., min_length=5)
